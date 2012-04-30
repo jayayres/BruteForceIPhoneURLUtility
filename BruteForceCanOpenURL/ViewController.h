@@ -32,6 +32,7 @@ limitations under the License.
 @property (nonatomic, retain) NSMutableArray* candidates;
 @property (nonatomic, retain) IBOutlet UIWebView* web;
 
--(void)startAnalyzing;
+-(void)startAnalyzingSimpleBFS;
+-(void)startAnalyzingCompressedBFS;
 
 @end

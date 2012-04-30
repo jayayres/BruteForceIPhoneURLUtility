@@ -7,6 +7,8 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		855095D41512CFFE0061A1F6 /* NSDataAdditions.m in Sources */ = {isa = PBXBuildFile; fileRef = 855095D31512CFFE0061A1F6 /* NSDataAdditions.m */; };
+		855095D61512D0640061A1F6 /* libz.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 855095D51512D0640061A1F6 /* libz.dylib */; };
 		85D940A515102B7600BF0271 /* icon@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = 85D940A415102B7600BF0271 /* icon@2x.png */; };
 		85D940A715102B9800BF0271 /* icon.png in Resources */ = {isa = PBXBuildFile; fileRef = 85D940A615102B9800BF0271 /* icon.png */; };
 		85E43329151019E90034BC4E /* UIKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 85E43328151019E90034BC4E /* UIKit.framework */; };
@@ -21,6 +23,9 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		855095D11512CFDB0061A1F6 /* NSDataAdditions.h */ = {isa = PBXFileReference; fileEncoding = 4; path = NSDataAdditions.h; sourceTree = "<group>"; };
+		855095D31512CFFE0061A1F6 /* NSDataAdditions.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = NSDataAdditions.m; sourceTree = "<group>"; };
+		855095D51512D0640061A1F6 /* libz.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libz.dylib; path = usr/lib/libz.dylib; sourceTree = SDKROOT; };
 		85D940A415102B7600BF0271 /* icon@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = "icon@2x.png"; path = "../icon@2x.png"; sourceTree = "<group>"; };
 		85D940A615102B9800BF0271 /* icon.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = icon.png; path = ../icon.png; sourceTree = "<group>"; };
 		85E43324151019E90034BC4E /* URL Utility.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "URL Utility.app"; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -45,6 +50,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				855095D61512D0640061A1F6 /* libz.dylib in Frameworks */,
 				85E43329151019E90034BC4E /* UIKit.framework in Frameworks */,
 				85E4332B151019E90034BC4E /* Foundation.framework in Frameworks */,
 				85E4332D151019E90034BC4E /* CoreGraphics.framework in Frameworks */,
@@ -57,6 +63,7 @@
 		85E43319151019E80034BC4E = {
 			isa = PBXGroup;
 			children = (
+				855095D51512D0640061A1F6 /* libz.dylib */,
 				85E4332E151019E90034BC4E /* BruteForceCanOpenURL */,
 				85E43327151019E90034BC4E /* Frameworks */,
 				85E43325151019E90034BC4E /* Products */,
@@ -84,6 +91,8 @@
 		85E4332E151019E90034BC4E /* BruteForceCanOpenURL */ = {
 			isa = PBXGroup;
 			children = (
+				855095D11512CFDB0061A1F6 /* NSDataAdditions.h */,
+				855095D31512CFFE0061A1F6 /* NSDataAdditions.m */,
 				85E43337151019E90034BC4E /* AppDelegate.h */,
 				85E43338151019E90034BC4E /* AppDelegate.m */,
 				85E4333A151019E90034BC4E /* ViewController.h */,
@@ -177,6 +186,7 @@
 				85E43335151019E90034BC4E /* main.m in Sources */,
 				85E43339151019E90034BC4E /* AppDelegate.m in Sources */,
 				85E4333C151019E90034BC4E /* ViewController.m in Sources */,
+				855095D41512CFFE0061A1F6 /* NSDataAdditions.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

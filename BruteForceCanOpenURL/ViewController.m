@@ -24,6 +24,7 @@
 
 #import "ViewController.h"
 #import "Constants.h"
+#import "NSDataAdditions.h"
 
 @implementation ViewController
 
@@ -62,7 +63,14 @@
 
 - (void)webViewDidFinishLoad:(UIWebView *)webView
 {
-    [self performSelectorInBackground:@selector(startAnalyzing) withObject:nil];    
+    if (USE_COMPRESSION)
+    {
+        [self performSelectorInBackground:@selector(startAnalyzingCompressedBFS) withObject:nil];    
+    }
+    else 
+    {
+        [self performSelectorInBackground:@selector(startAnalyzingSimpleBFS) withObject:nil]; 
+    }
 }
 
 - (void)addScheme:(NSString*)scheme
@@ -76,7 +84,12 @@
     NSString* js = [NSString stringWithFormat:@"setNumProcessed(%@);", proc];
     [web stringByEvaluatingJavaScriptFromString:js];    
 }
-- (void)startAnalyzing
+
+/**
+ * Does a simple breadth-first-search of URL candidates,
+ * entirely in memory. Runs out of memory fairly quickly.
+ **/
+- (void)startAnalyzingSimpleBFS
 {
     NSLog(@"Analysis started");
     NSMutableArray* arr = [[NSMutableArray alloc] initWithCapacity:10000];
@@ -85,14 +98,14 @@
     
     for (NSUInteger c = ASCII_CODE_LOWER; c <= ASCII_CODE_UPPER; c++)
     {
-        [candidates addObject:[[NSString alloc] initWithFormat:@"%c", c]];
+        [candidates insertObject:[[NSString alloc] initWithFormat:@"%c", c] atIndex:0];
     }
     
     UIApplication* app = [UIApplication sharedApplication];
     long long ct=0;
     while ([candidates count] > 0)
     {
-        NSString*next = [candidates objectAtIndex:0];
+        NSString*next = [candidates lastObject];
         NSString*nextUrlStr = [[NSString alloc] initWithFormat:@"%@://test", next];
         NSURL* testURL = [[NSURL alloc] initWithString:nextUrlStr];
         if ([app canOpenURL:testURL])
@@ -102,12 +115,12 @@
         }
         [testURL release];
         [nextUrlStr release];
-        [candidates removeObjectAtIndex:0];
+        [candidates removeLastObject];
         if ([next length] < MAX_LENGTH_TO_CHECK)
         {
             for (NSUInteger c = ASCII_CODE_LOWER; c <= ASCII_CODE_UPPER; c++)
             {
-                [candidates addObject:[[NSString alloc] initWithFormat:@"%@%c", next, c]];
+                [candidates insertObject:[[NSString alloc] initWithFormat:@"%@%c", next, c] atIndex:0];
             }            
         }
         [next release];
@@ -121,6 +134,107 @@
             [fmtStr release];
         }
     }    
+}
+
+/**
+ * Also does a breadth-first-search of URL candidates, but
+ * new nodes added to the tree are concatenated together as
+ * strings and then compressed with gzip, lessening the
+ * memory footprint as the tree grows larger.
+ **/
+- (void)startAnalyzingCompressedBFS
+{
+    NSLog(@"Analysis started CompressedBFS");
+    NSString* splitChar = @"_";
+    NSMutableArray* arr = [[NSMutableArray alloc] initWithCapacity:10000];
+    self.candidates = arr;
+    [arr release];
+    
+    NSMutableString* add1Str = [[NSMutableString alloc] initWithCapacity:26];
+    for (NSUInteger c = ASCII_CODE_LOWER; c <= ASCII_CODE_UPPER; c++)
+    {
+        if (c < ASCII_CODE_UPPER)
+        {
+            [add1Str appendFormat:@"%c_", c];
+        }
+        else 
+        {
+            [add1Str appendFormat:@"%c", c];
+        }
+    }    
+    NSData* data1=[[add1Str dataUsingEncoding:NSUTF8StringEncoding] gzipDeflate];
+    [candidates insertObject:data1 atIndex:0];
+    
+    UIApplication* app = [UIApplication sharedApplication];
+    long long ct=0;
+    NSAutoreleasePool* pool = [[NSAutoreleasePool alloc] init];
+    while ([candidates count] > 0)
+    {
+        NSData*nextData = [candidates lastObject];
+        NSData*ucNextData = [nextData gzipInflate];
+        NSString*next = [[NSString alloc] initWithData:ucNextData encoding:NSUTF8StringEncoding];
+             
+        NSMutableString* addStr = [[NSMutableString alloc] initWithCapacity:2400000];
+        NSUInteger aIdx = 0;
+        for (NSString* nextCmp in [next componentsSeparatedByString:splitChar])
+        {
+            NSAutoreleasePool* pool = [[NSAutoreleasePool alloc] init];
+            
+            if ([nextCmp length] == 0)
+            {
+                aIdx++;
+                [pool drain];
+                continue;
+            }
+            NSString*nextUrlStr = [[NSString alloc] initWithFormat:@"%@://test", nextCmp];
+            NSURL* testURL = [[NSURL alloc] initWithString:nextUrlStr];
+            if ([app canOpenURL:testURL])
+            {
+                [self performSelectorOnMainThread:@selector(addScheme:) withObject:nextCmp waitUntilDone:YES];
+            }
+            [testURL release];
+            [nextUrlStr release];
+            if ([nextCmp length] < MAX_LENGTH_TO_CHECK)
+            {
+                for (NSUInteger c = ASCII_CODE_LOWER; c <= ASCII_CODE_UPPER; c++)
+                {
+                    [addStr appendFormat:@"%@%c_", nextCmp, c];
+                }    
+            }
+            ct++;
+            
+            if (ct % PROGRESS_UPDATE_INTERVAL == 0)
+            {
+                NSString* fmtStr = [[NSString alloc] initWithFormat:@"%lld", ct];
+                NSLog(@"Processed %@", fmtStr);
+                [self performSelectorOnMainThread:@selector(setNumProcessed:) withObject:fmtStr waitUntilDone:YES];
+                [fmtStr release];
+            }
+            
+            if (ct % 100 == 0 && [addStr length] > 2000000)
+            {
+                NSLog(@"addStr length at end: %d", [addStr length]);
+                
+                NSData* data=[[addStr dataUsingEncoding:NSUTF8StringEncoding] gzipDeflate];
+                NSLog(@"compressed len=%d", [data length]);
+                [candidates insertObject:data atIndex:0];    
+                addStr = [[NSMutableString alloc] initWithCapacity:2400000];
+            }
+            aIdx++;
+            [pool drain];
+        }
+        [candidates removeLastObject];
+        
+        NSLog(@"addStr length at end: %d", [addStr length]);
+        
+        NSData* data=[[addStr dataUsingEncoding:NSUTF8StringEncoding] gzipDeflate];
+        NSLog(@"compressed len=%d", [data length]);
+        [candidates insertObject:data atIndex:0]; 
+        
+        [next release];
+    }    
+    
+    [pool drain];
 }
 
 - (void)dealloc

@@ -1,13 +1,9 @@
-//
-//  LFCGzipUtility.h
-//  URL Utility
-//
-//  Created by Jay Ayres on 3/15/12.
-//  Copyright (c) 2012 __MyCompanyName__. All rights reserved.
-//
+// From: http://deusty.blogspot.com/2007/07/gzip-compressiondecompression.html
+#import <Foundation/Foundation.h>
+@interface NSData (DDData)
 
-#import <UIKit/UIKit.h>
-
-@interface LFCGzipUtility : NSObject
+// gzip compression utilities
+- (NSData *)gzipInflate;
+- (NSData *)gzipDeflate;
 
 @end

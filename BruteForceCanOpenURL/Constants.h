@@ -33,3 +33,7 @@
 
 // How many checks should pass before progress indicator is updated
 #define PROGRESS_UPDATE_INTERVAL 10000
+
+// When true, compresses the BFS search tree in memory to 
+// allow for a larger search space
+#define USE_COMPRESSION YES
